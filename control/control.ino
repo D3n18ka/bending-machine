@@ -1,6 +1,10 @@
-#include <LiquidCrystal.h>
+//#include <LiquidCrystal.h>
+#include <Wire.h>
+#include "LiquidCrystal_I2C.h"
 
 #include "buttons.h"
+
+LiquidCrystal_I2C lcd(0x3F, 16, 2);
 
 typedef struct {
   const uint8_t steps[8];
@@ -35,7 +39,7 @@ const detail details[] =  {
     "Wind strip"
   },
   { //снегозадержатель
-    {0, 0, 120, 90, END},
+    {0, 0, 120, 90, 0, END},
     "Snow barrier"
   },
   { //капельник
@@ -101,67 +105,79 @@ void onDown() {
 
 
 void onRight() {
-  state.step = inc(state.step, 8 - 1) ;
+  state.step = inc(state.step, 8 - 1);
 }
 
 void onLeft() {
-  state.step = dec(state.step, 8 - 1) ;
+  state.step = dec(state.step, 8 - 1);
 }
 
+void printSteps(LiquidCrystal_I2C lcd, uint8_t steps[]) {
+  lcd.setCursor(0, 0);
+  for (uint8_t i = 0; i < 8; i++) {
+    uint8_t angle = steps[i];
+    if (angle == 0) {
+      lcd.print("0");
+    } else  if (angle == 90) {
+      lcd.print("1");
+    } else  if (angle == 120) {
+      lcd.print("2");
+    } else if (angle == 255) {
+      lcd.print("_");
+    }
+  }
+}
+
+void refresh(LiquidCrystal_I2C lcd, State state) {
+  lcd.clear();
+  lcd.noBlink();
+  printSteps(lcd, state.steps);
+  lcd.setCursor(0, 1);
+  lcd.print(state.text);
+  lcd.setCursor(state.step, 0);
+  lcd.blink();
+}
 
 void setup() {
+  lcd.begin();
   Serial.begin(115200);
   state.text = details[state.detail_n].text;
   memcpy(state.steps, details[state.detail_n].steps, 8);
+  lcd.setCursor(0, 0);
+  printSteps(lcd, state.steps);
+  lcd.setCursor(0, 1);
+  lcd.print(state.text);
+  lcd.setCursor(0, 0);
+  lcd.blink();
 }
 
 
 void loop() {
-  uint8_t k = buttons_key(analogRead(A0));
+  uint16_t k = buttons_key_keyes(analogRead(A0));
   switch (k) {
     case NONE_BUTTON:
       break;
     case RIGHT_BUTTON:
       onRight();
+      lcd.setCursor(state.step, 0);
       break;
     case LEFT_BUTTON:
       onLeft();
+      lcd.setCursor(state.step, 0);
       break;
     case UP_BUTTON:
       onUp();
+      refresh(lcd, state);
       break;
     case DOWN_BUTTON:
       onDown();
+      refresh(lcd, state);
       break;
     case SELECT_BUTTON:
       onSelect();
+      refresh(lcd, state);
       break;
   }
-
-  Serial.print(state.step);
-  Serial.print(" ");
-
-  Serial.println(state.detail_n);
-
-  Serial.print("[");
-  Serial.print(state.steps[0]);
-  Serial.print(" ");
-  Serial.print(state.steps[1]);
-  Serial.print(" ");
-  Serial.print(state.steps[2]);
-  Serial.print(" ");
-  Serial.print(state.steps[3]);
-  Serial.print(" ");
-  Serial.print(state.steps[4]);
-  Serial.print(" ");
-  Serial.print(state.steps[5]);
-  Serial.print(" ");
-  Serial.print(state.steps[6]);
-  Serial.print(" ");
-  Serial.print(state.steps[7]);
-  Serial.println("]");
-
-  Serial.println(state.text);
   delay(250);
 }
 
