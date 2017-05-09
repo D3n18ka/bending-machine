@@ -1,10 +1,12 @@
-//#include <LiquidCrystal.h>
+#include <LiquidCrystal.h>
 #include <Wire.h>
-#include "LiquidCrystal_I2C.h"
+//#include "LiquidCrystal_I2C.h"
 
 #include "buttons.h"
 
-LiquidCrystal_I2C lcd(0x3F, 16, 2);
+//LiquidCrystal_I2C lcd(0x3F, 16, 2);
+
+LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 
 typedef struct {
   const uint8_t steps[8];
@@ -112,7 +114,10 @@ void onLeft() {
   state.step = dec(state.step, 8 - 1);
 }
 
-void printSteps(LiquidCrystal_I2C lcd, uint8_t steps[]) {
+void printSteps(LiquidCrystal lcd, uint8_t steps[]) {
+  //void printSteps(LiquidCrystal_I2C lcd, uint8_t steps[]) {
+
+
   lcd.setCursor(0, 0);
   for (uint8_t i = 0; i < 8; i++) {
     uint8_t angle = steps[i];
@@ -123,12 +128,14 @@ void printSteps(LiquidCrystal_I2C lcd, uint8_t steps[]) {
     } else  if (angle == 120) {
       lcd.print("2");
     } else if (angle == 255) {
-      lcd.print("_");
+      return;
     }
   }
 }
 
-void refresh(LiquidCrystal_I2C lcd, State state) {
+void refresh(LiquidCrystal lcd, State state) {
+  //void refresh(LiquidCrystal_I2C lcd, State state) {
+
   lcd.clear();
   lcd.noBlink();
   printSteps(lcd, state.steps);
@@ -138,8 +145,12 @@ void refresh(LiquidCrystal_I2C lcd, State state) {
   lcd.blink();
 }
 
+Analog_Button a_button;
+
 void setup() {
-  lcd.begin();
+  lcd.begin(16, 2);
+
+  //  lcd.begin();
   Serial.begin(115200);
   state.text = details[state.detail_n].text;
   memcpy(state.steps, details[state.detail_n].steps, 8);
@@ -153,8 +164,15 @@ void setup() {
 
 
 void loop() {
-  uint16_t k = buttons_key_keyes(analogRead(A0));
-  switch (k) {
+
+
+  int8_t value = buttons_key(analogRead(A0));
+
+  if (!is_update_button(&a_button, value, millis())) {
+    return ;
+  }
+
+  switch (value) {
     case NONE_BUTTON:
       break;
     case RIGHT_BUTTON:
