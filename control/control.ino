@@ -1,12 +1,12 @@
-#include <LiquidCrystal.h>
+//#include <LiquidCrystal.h>
 #include <Wire.h>
-//#include "LiquidCrystal_I2C.h"
+#include "LiquidCrystal_I2C.h"
 
 #include "buttons.h"
 
-//LiquidCrystal_I2C lcd(0x3F, 16, 2);
+LiquidCrystal_I2C lcd(0x3F, 16, 2);
 
-LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
+//LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 
 typedef struct {
   const uint8_t steps[8];
@@ -114,8 +114,30 @@ void onLeft() {
   state.step = dec(state.step, 8 - 1);
 }
 
-void printSteps(LiquidCrystal lcd, uint8_t steps[]) {
-  //void printSteps(LiquidCrystal_I2C lcd, uint8_t steps[]) {
+void onStep() {
+  uint8_t angel = state.steps[state.step];
+  if (angel == 0) {
+    digitalWrite(3, HIGH);
+    digitalWrite(4, HIGH);
+  } else if (angel == 90) {
+    digitalWrite(3, HIGH);
+    digitalWrite(4, LOW);
+  } else if (angel == 120) {
+    digitalWrite(3, LOW);
+    digitalWrite(4, HIGH);
+  } 
+
+  state.step = inc(state.step, 8 - 1);
+  angel = state.steps[state.step];
+  if (angel == 255) {
+    state.step=0;    
+  }
+}
+
+
+
+//void printSteps(LiquidCrystal lcd, uint8_t steps[]) {
+void printSteps(LiquidCrystal_I2C lcd, uint8_t steps[]) {
 
 
   lcd.setCursor(0, 0);
@@ -133,8 +155,8 @@ void printSteps(LiquidCrystal lcd, uint8_t steps[]) {
   }
 }
 
-void refresh(LiquidCrystal lcd, State state) {
-  //void refresh(LiquidCrystal_I2C lcd, State state) {
+//void refresh(LiquidCrystal lcd, State state) {
+void refresh(LiquidCrystal_I2C lcd, State state) {
 
   lcd.clear();
   lcd.noBlink();
@@ -146,12 +168,22 @@ void refresh(LiquidCrystal lcd, State state) {
 }
 
 Analog_Button a_button;
+Analog_Button end_button;
 
 void setup() {
-  lcd.begin(16, 2);
+  pinMode(4, OUTPUT);
+  digitalWrite(4,HIGH);
+  pinMode(3, OUTPUT);
+  digitalWrite(3,HIGH);
+ 
+  pinMode(A2, INPUT);
 
-  //  lcd.begin();
-  Serial.begin(115200);
+  //  lcd.begin(16, 2);
+
+//  Serial.begin(115200);
+  
+  lcd.begin();
+
   state.text = details[state.detail_n].text;
   memcpy(state.steps, details[state.detail_n].steps, 8);
   lcd.setCursor(0, 0);
@@ -165,8 +197,15 @@ void setup() {
 
 void loop() {
 
+  int8_t  end_value = digitalRead(A2);
+  bool is_f = is_update_button(&end_button, end_value, millis());
+  if (is_f && end_value == 0) {
+    onStep();
+    refresh(lcd, state);
+    return;
+  }
 
-  int8_t value = buttons_key(analogRead(A0));
+  int8_t value = buttons_key_keyes(analogRead(A0));
 
   if (!is_update_button(&a_button, value, millis())) {
     return ;
@@ -196,6 +235,6 @@ void loop() {
       refresh(lcd, state);
       break;
   }
-  delay(250);
+
 }
 

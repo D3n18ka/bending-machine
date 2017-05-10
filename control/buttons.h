@@ -50,7 +50,7 @@ bool is_update_button( struct Analog_Button *b, int8_t value, unsigned long ts)
 
   b->last = value;
 
-  if ((ts - b->ts) < 10) {
+  if ((ts - b->ts) < 20) {
     return false;
   }
 
