@@ -42,20 +42,20 @@ typedef struct Analog_Button {
   unsigned long ts;
 } Analog_Button;
 
-bool is_update_button( struct Analog_Button *b, int8_t value, unsigned long ts)
+bool is_update_button( struct Analog_Button& b, int8_t value, unsigned long ts)
 {
-  if (b->last != value) {
-    b->ts = ts;
+  if (b.last != value) {
+    b.ts = ts;
   }
 
-  b->last = value;
+  b.last = value;
 
-  if ((ts - b->ts) < 20) {
+  if ((ts - b.ts) < 20) {
     return false;
   }
 
-  if (b->state != value) {
-    b->state = value;
+  if (b.state != value) {
+    b.state = value;
     return true;
   }
 

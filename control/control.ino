@@ -93,14 +93,14 @@ void onSelect() {
 
 void onUp() {
   state.step = 0;
-  state.detail_n = inc(state.detail_n, details_count - 1);
+  state.detail_n = dec(state.detail_n, details_count - 1);
   state.text = details[state.detail_n].text;
   memcpy(state.steps, details[state.detail_n].steps, 8);
 }
 
 void onDown() {
   state.step = 0;
-  state.detail_n = dec(state.detail_n, details_count - 1);
+  state.detail_n = inc(state.detail_n, details_count - 1);
   state.text = details[state.detail_n].text;
   memcpy(state.steps, details[state.detail_n].steps, 8);
 }
@@ -125,19 +125,19 @@ void onStep() {
   } else if (angel == 120) {
     digitalWrite(3, LOW);
     digitalWrite(4, HIGH);
-  } 
+  }
 
   state.step = inc(state.step, 8 - 1);
   angel = state.steps[state.step];
   if (angel == 255) {
-    state.step=0;    
+    state.step = 0;
   }
 }
 
 
 
 //void printSteps(LiquidCrystal lcd, uint8_t steps[]) {
-void printSteps(LiquidCrystal_I2C lcd, uint8_t steps[]) {
+void printSteps(LiquidCrystal_I2C& lcd, uint8_t steps[]) {
 
 
   lcd.setCursor(0, 0);
@@ -156,7 +156,7 @@ void printSteps(LiquidCrystal_I2C lcd, uint8_t steps[]) {
 }
 
 //void refresh(LiquidCrystal lcd, State state) {
-void refresh(LiquidCrystal_I2C lcd, State state) {
+void refresh(LiquidCrystal_I2C& lcd, State state) {
 
   lcd.clear();
   lcd.noBlink();
@@ -172,16 +172,16 @@ Analog_Button end_button;
 
 void setup() {
   pinMode(4, OUTPUT);
-  digitalWrite(4,HIGH);
+  digitalWrite(4, HIGH);
   pinMode(3, OUTPUT);
-  digitalWrite(3,HIGH);
- 
+  digitalWrite(3, HIGH);
+
   pinMode(A2, INPUT);
 
   //  lcd.begin(16, 2);
 
-//  Serial.begin(115200);
-  
+  //  Serial.begin(115200);
+
   lcd.begin();
 
   state.text = details[state.detail_n].text;
@@ -198,16 +198,17 @@ void setup() {
 void loop() {
 
   int8_t  end_value = digitalRead(A2);
-  bool is_f = is_update_button(&end_button, end_value, millis());
+  bool is_f = is_update_button(end_button, end_value, millis());
   if (is_f && end_value == 0) {
     onStep();
-    refresh(lcd, state);
+    lcd.setCursor(state.step, 0);
     return;
   }
 
-  int8_t value = buttons_key_keyes(analogRead(A0));
+    int8_t value = buttons_key_keyes(analogRead(A0));
+//  int8_t value = buttons_key_robodyn(analogRead(A0));
 
-  if (!is_update_button(&a_button, value, millis())) {
+  if (!is_update_button(a_button, value, millis())) {
     return ;
   }
 
@@ -217,6 +218,10 @@ void loop() {
     case RIGHT_BUTTON:
       onRight();
       lcd.setCursor(state.step, 0);
+
+//      onStep();
+//      lcd.setCursor(state.step, 0);
+
       break;
     case LEFT_BUTTON:
       onLeft();
