@@ -138,8 +138,6 @@ void onStep() {
 
 //void printSteps(LiquidCrystal lcd, uint8_t steps[]) {
 void printSteps(LiquidCrystal_I2C& lcd, uint8_t steps[]) {
-
-
   lcd.setCursor(0, 0);
   for (uint8_t i = 0; i < 8; i++) {
     uint8_t angle = steps[i];
@@ -154,6 +152,12 @@ void printSteps(LiquidCrystal_I2C& lcd, uint8_t steps[]) {
     }
   }
 }
+
+void onClear() {
+  digitalWrite(3, HIGH);
+  digitalWrite(4, HIGH);
+}
+
 
 //void refresh(LiquidCrystal lcd, State state) {
 void refresh(LiquidCrystal_I2C& lcd, State state) {
@@ -204,6 +208,13 @@ void loop() {
     lcd.setCursor(state.step, 0);
     return;
   }
+
+  
+  if (is_f && end_value == 1) {
+    onClear();
+    return;
+  }
+
 
     int8_t value = buttons_key_keyes(analogRead(A0));
 //  int8_t value = buttons_key_robodyn(analogRead(A0));
