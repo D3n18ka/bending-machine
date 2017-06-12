@@ -39,7 +39,7 @@ const detail details[] =  {
     {0, 120, END},
     "karnizka"
   },
-   { //лобовая
+  { //лобовая
     {0, 90, END},
     "Lobovaya"
   },
@@ -199,13 +199,24 @@ void setup() {
   refresh(lcd, state);
 }
 
+unsigned long start_on_ts = 0;
+
 void loop() {
+
+
+  if ((start_on_ts > 0) && ((millis() - start_on_ts) > 250)) {
+    relays_off();
+    start_on_ts = 0;
+    return;
+  }
 
   int8_t end_value = digitalRead(ENDSTOP_PIN);
   bool is_f = is_update_button(endstop_button, end_value, millis());
   if (is_f && end_value == 0) {
     on_step(state);
+    start_on_ts = millis();
     lcd.setCursor(state.step, 0);
+
     return;
   }
 
